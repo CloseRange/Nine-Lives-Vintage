@@ -42,7 +42,7 @@
 
                     <% if (product.category_id) { %>
                         <a href="/shop?category=<%= encodeURIComponent(product.category_id) %>">
-                            <%= product.category_id %>
+                            <%= product.category_name || product.category_id %>
                         </a>
                         <span class="icon icon-arrow-right"></span>
                     <% } %>
@@ -94,7 +94,7 @@
                             <span>SKU: <strong><%= product.sku %></strong></span>
 
                             <% if (product.category_id) { %>
-                                <span>Category: <strong><%= product.category_id %></strong></span>
+                                <span>Category: <strong><%= product.category_name || product.category_id %></strong></span>
                             <% } %>
                         </div>
 
@@ -268,7 +268,7 @@
                                         <%= product.title %>
                                     </a>
 
-                                    <p class="product-meta"><%= product.category_id || 'Unisex' %></p>
+                                    <p class="product-meta"><%= product.category_name || product.category_id || 'Unisex' %></p>
 
                                     <div class="product-bottom">
                                         <strong class="product-price">

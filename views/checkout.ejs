@@ -86,7 +86,7 @@
                         <div class="cart-item-content">
                             <div class="cart-item-header">
                                 <div>
-                                    <p class="cart-item-kicker"><%= item.category_id || 'Unisex' %></p>
+                                    <p class="cart-item-kicker"><%= item.category_name || item.category_id || 'Unisex' %></p>
                                     <h2>
                                         <a href="/product/<%= item.sku %>"><%= item.title %></a>
                                     </h2>

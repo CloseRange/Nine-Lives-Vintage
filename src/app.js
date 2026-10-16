@@ -2,6 +2,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs/promises');
+const fsSync = require('fs');
 const session = require('express-session');
 const Stripe = require('stripe');
 const MarkdownIt = require('markdown-it');
@@ -44,6 +45,39 @@ const SHIPPING_MAX = Number(process.env.SHIPPING_MAX || 12);
 
 const majorCategories = require('../public/major_category.json');
 const minorCategories = require('../public/minor_category.json');
+
+const loadCategoryNameMap = () => {
+    const sources = [
+        path.join(__dirname, '../public/category_names.json'),
+        path.join(__dirname, '../public/category_names')
+    ];
+
+    for (const sourcePath of sources) {
+        try {
+            const parsed = JSON.parse(fsSync.readFileSync(sourcePath, 'utf8'));
+
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                return parsed;
+            }
+        } catch (error) {
+            // Try next source path.
+        }
+    }
+
+    return {};
+};
+
+const categoryNames = loadCategoryNameMap();
+
+const resolveCategoryName = (categoryId) => {
+    const rawValue = String(categoryId || '').trim();
+
+    if (!rawValue) {
+        return '';
+    }
+
+    return categoryNames[rawValue] || rawValue;
+};
 
 const slugify = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
@@ -454,6 +488,7 @@ const loadCartData = async (req) => {
 
             return {
                 ...listing,
+                category_name: resolveCategoryName(listing.category_id),
                 images: (images || []).filter(image => image.sku === sku)
             };
         })
@@ -1633,6 +1668,7 @@ app.get('/shop', async (req, res) => {
 
             return {
                 ...listing,
+                category_name: resolveCategoryName(listing.category_id),
                 images: listingImages
             };
         });
@@ -2073,6 +2109,7 @@ app.get('/product/:sku', async (req, res) => {
 
         const product = {
             ...listing,
+            category_name: resolveCategoryName(listing.category_id),
             images: productImages || []
         };
 
@@ -2166,6 +2203,7 @@ app.get('/product/:sku', async (req, res) => {
 
             relatedProducts = (relatedListings || []).map(item => ({
                 ...item,
+                category_name: resolveCategoryName(item.category_id),
                 images: relatedImages.filter(image => image.sku === item.sku)
             }));
         }

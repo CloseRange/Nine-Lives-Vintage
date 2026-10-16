@@ -272,7 +272,7 @@
 
                     <p class="product-meta">
 
-                        <%= product.category_id || "Unisex" %>
+                        <%= product.category_name || product.category_id || "Unisex" %>
 
                         <% if (product.size) { %>
                             · Size <%= product.size %>
