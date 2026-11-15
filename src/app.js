@@ -79,6 +79,57 @@ const resolveCategoryName = (categoryId) => {
     return categoryNames[rawValue] || rawValue;
 };
 
+const normalizeCategoryToken = (value) => String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[’‘`]/g, "'")
+    .replace(/\s+/g, ' ');
+
+const createCategoryMatcher = (categoryValues) => {
+    const idSet = new Set();
+    const nameSet = new Set();
+
+    (Array.isArray(categoryValues) ? categoryValues : []).forEach(value => {
+        const rawValue = String(value || '').trim();
+
+        if (!rawValue) {
+            return;
+        }
+
+        if (/^\d+$/.test(rawValue)) {
+            idSet.add(rawValue);
+
+            const mappedName = resolveCategoryName(rawValue);
+            const normalizedMappedName = normalizeCategoryToken(mappedName);
+            if (normalizedMappedName) {
+                nameSet.add(normalizedMappedName);
+            }
+
+            return;
+        }
+
+        const normalizedName = normalizeCategoryToken(rawValue);
+        if (normalizedName) {
+            nameSet.add(normalizedName);
+        }
+    });
+
+    return {
+        matches(product) {
+            const productCategoryId = String(product?.category_id || '').trim();
+            if (productCategoryId && idSet.has(productCategoryId)) {
+                return true;
+            }
+
+            const productCategoryName = normalizeCategoryToken(
+                product?.category_name || resolveCategoryName(product?.category_id)
+            );
+
+            return Boolean(productCategoryName) && nameSet.has(productCategoryName);
+        }
+    };
+};
+
 const slugify = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
 // Finds the JSON key whose slug matches the given query param value
@@ -1696,25 +1747,28 @@ app.get('/shop', async (req, res) => {
 
         } else if (departmentKey) {
 
+            const departmentMatcher = createCategoryMatcher(majorCategories[departmentKey]);
+
             products = products.filter(
-                product => majorCategories[departmentKey].includes(product.category_id)
+                product => departmentMatcher.matches(product)
             );
         }
 
         if (categorySlugs.length) {
 
-            // Union of every checked category's category_id list (OR filter)
-            const matchedCategoryIds = new Set();
+            // Union of every checked category value list (OR filter)
+            const matchedCategoryValues = new Set();
 
             categorySlugs.forEach(slug => {
                 const categoryKey = findCategoryKey(minorCategories, slug);
                 if (categoryKey) {
-                    minorCategories[categoryKey].forEach(id => matchedCategoryIds.add(id));
+                    minorCategories[categoryKey].forEach(value => matchedCategoryValues.add(value));
                 }
             });
 
-            if (matchedCategoryIds.size) {
-                products = products.filter(product => matchedCategoryIds.has(product.category_id));
+            if (matchedCategoryValues.size) {
+                const categoryMatcher = createCategoryMatcher(Array.from(matchedCategoryValues));
+                products = products.filter(product => categoryMatcher.matches(product));
             }
         }
 
