@@ -199,6 +199,17 @@
 
         <% products.forEach(product => { %>
 
+            <%
+                const salePrice = Number(product.price);
+                const basePrice = Number(product.base_price);
+                const hasValidSalePrice = Number.isFinite(salePrice) && salePrice > 0;
+                const hasValidBasePrice = Number.isFinite(basePrice) && basePrice > 0;
+                const isOnSale = hasValidSalePrice && hasValidBasePrice && salePrice < basePrice;
+                const salePercent = isOnSale
+                    ? Math.round(((basePrice - salePrice) / basePrice) * 100)
+                    : 0;
+            %>
+
             <article class="product-card">
 
                 <a
@@ -237,7 +248,13 @@
 
                     <% } %>
 
-                    <% if (product.badge) { %>
+                    <% if (isOnSale && salePercent > 0) { %>
+
+                        <span class="product-badge badge-sale">
+                            <%= salePercent %>% OFF
+                        </span>
+
+                    <% } else if (product.badge) { %>
 
                         <span class="
                             product-badge
@@ -283,9 +300,20 @@
 
                     <div class="product-bottom">
 
-                        <strong class="product-price">
-                            $<%= Number(product.price).toFixed(2) %>
-                        </strong>
+                        <% if (isOnSale) { %>
+                            <div class="product-price-stack">
+                                <strong class="product-price product-price-sale">
+                                    $<%= salePrice.toFixed(2) %>
+                                </strong>
+                                <span class="product-price-base">
+                                    $<%= basePrice.toFixed(2) %>
+                                </span>
+                            </div>
+                        <% } else { %>
+                            <strong class="product-price">
+                                $<%= hasValidSalePrice ? salePrice.toFixed(2) : '0.00' %>
+                            </strong>
+                        <% } %>
 
 
                         <% if (_cartSkus.includes(String(product.sku))) { %>

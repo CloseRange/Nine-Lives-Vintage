@@ -1683,6 +1683,7 @@ app.get('/shop', async (req, res) => {
                 title,
                 description,
                 price,
+                base_price,
                 sku,
                 category_id,
                 created_at,

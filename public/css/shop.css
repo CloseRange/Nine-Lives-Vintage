@@ -1181,6 +1181,11 @@ img {
     background: var(--color-mint);
 }
 
+.badge-sale {
+    background: #d43333;
+    color: #ffffff;
+}
+
 
 /* ---------- Product Information ---------- */
 
@@ -1221,6 +1226,23 @@ img {
 
 .product-price {
     font-size: 21px;
+}
+
+.product-price-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    line-height: 1.1;
+}
+
+.product-price-sale {
+    color: #c52d2d;
+}
+
+.product-price-base {
+    color: var(--color-text-muted);
+    font-size: 12px;
+    text-decoration: line-through;
 }
 
 .add-cart-button {
@@ -3695,6 +3717,10 @@ img {
 
     .product-price {
         font-size: 18px;
+    }
+
+    .product-price-base {
+        font-size: 11px;
     }
 
     .cart-page {
